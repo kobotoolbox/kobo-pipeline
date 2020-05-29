@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Test POST</title>
+    <style media="screen">
+      .hidden {
+        display: none;
+      }
+      textarea#curl {
+        width: 90%;
+        height: 14em;
+      }
+    </style>
+  </head>
+  <body>
+    Test POST to <code>${TEST_URL}</code> mimics values from <code>${PIPE_URL}</code>
+    <h3>POST</h3>
+    <code><pre id="post"></pre></code>
+    <h3>RESPONSE</h3>
+    <code><pre id="response"></pre></code>
+    <h3>CURL</h3>
+    <code><textarea id="curl" class="hidden"></textarea></code>
+    <script
+      src="https://code.jquery.com/jquery-3.5.1.js"
+      integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+      crossorigin="anonymous"></script>
+    <script>
+      const randStr = () => Math.random().toString(36).substring(2, 15);
+      let vals = {
+        'id_ref': prompt('id_ref'),
+        'formhub/uuid': randStr() + randStr(),
+      };
+      let n = 1, phonePrompt = prompt('phone_'+n);
+      while (phonePrompt) {
+        vals['${FIELD_BASE_NAME}' + n] = phonePrompt;
+        n++;
+        phonePrompt = prompt('${FIELD_BASE_NAME}' + n);
+      }
+      $('#post').text(JSON.stringify(vals, null, 2));
+      $.ajax({
+        type: "POST",
+        url: '${PIPE_URL}/test',
+        data: JSON.stringify(vals),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'JSON'
+      }).then(function (response, status, req){
+        if (response.curl) {
+          $('#curl').text(response.curl).removeClass('hidden');
+          delete response.curl;
+        }
+        $('#response').text(JSON.stringify(response, null, 2))
+      });
+    </script>
+  </body>
+</html>

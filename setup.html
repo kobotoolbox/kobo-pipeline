@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>REDIRECT</title>
+  </head>
+  <body>
+    <h3>Setup this Kobo REST Forwarder:</h3>
+    <ul>
+      <li>Kobotoolbox &raquo; Form settings</li>
+      <li>REST services</li>
+      <li>Endpoint URL= <input type="text" id="current-page" /></li>
+      <li>&check; Enabled</li>
+      <li>type = JSON</li>
+      <li>No Authentication</li>
+      <li>No Custom Headers</li>
+      <li>Logs can be viewed with command [ <code>heroku logs --tail</code> ]</li>
+      <hr>
+      <li><a href="${PIPE_URL}/test">Tester</a></li>
+    </ul>
+    <script type="text/javascript">
+      document.getElementById('current-page').value = '' + window.location.href;
+    </script>
+  </body>
+</html>
