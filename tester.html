@@ -39,7 +39,7 @@
         vals['RECRUIT' + n + '_NAME'] = namePrompt || '';
         n++;
         phonePrompt = prompt('RECRUIT' + n + '_PHONE');
-        namePrompt = prompt('RECRUIT' + n + '_PHONE');
+        namePrompt = prompt('RECRUIT' + n + '_NAME');
       }
       $('#post').text(JSON.stringify(vals, null, 2));
       $.ajax({
