@@ -32,10 +32,8 @@ const transformSubmission = (koboSubmission) => {
   // field as the value that will get passed to "submission_uuid"
   // this is so that we can validate which submissions were successfully passed
   // through to airtable (if we need to).
-  let uuidField = Object.keys(koboSubmission).find((x)=>x.endsWith('/uuid'));
-  if (uuidField) {
-    fieldsBase['submission_uuid'] = koboSubmission[uuidField];
-  }
+  const instanceIDfield = 'meta/instanceID';
+  fieldsBase['submission_uuid'] = koboSubmission[instanceIDfield];
 
   // fieldNames is an array like [['RECRUIT1_PHONE', 'RECRUIT1_NAME'], ...] for each value
   // found in the submission
