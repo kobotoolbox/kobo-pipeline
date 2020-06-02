@@ -12,7 +12,6 @@ const PIPE_URL = '/' + _pipe_name;
 const API_KEY = process.env.AIRTABLE_KEY || 'keykeykey';
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'app0app0app0';
 const DOC_ID = process.env.DOC_ID || 'Table%201';
-const FIELD_BASE_NAME = 'phone_';
 
 const transformSubmission = (koboSubmission) => {
   const { id_ref } = koboSubmission;
@@ -32,14 +31,17 @@ const transformSubmission = (koboSubmission) => {
     fieldsBase['submission_uuid'] = koboSubmission[uuidField];
   }
 
-  // phoneFields is an array like ['phone_1', 'phone_2', ...] for each value
+  // fieldNames is an array like [['RECRUIT1_PHONE', 'RECRUIT1_NAME'], ...] for each value
   // found in the submission
   let n = 1,
-      phoneFields = [],
-      field = koboSubmission[`${FIELD_BASE_NAME}${n}`];
+      fieldNames = [],
+      field = koboSubmission[`RECRUIT${n}_PHONE`];
   while (field) {
-    phoneFields.push(`${FIELD_BASE_NAME}${n}`);
-    field = koboSubmission[`${FIELD_BASE_NAME}${++n}`];
+    fieldNames.push([
+      `RECRUIT${n}_PHONE`,
+      `RECRUIT${n}_NAME`,
+    ]);
+    field = koboSubmission[`RECRUIT${n}_PHONE`];
   }
 
   // compile the data.records to resemble
@@ -53,10 +55,11 @@ const transformSubmission = (koboSubmission) => {
   //   },
   //   ...
   // ]
-  data.records = phoneFields.map(( phoneField ) => {
+  data.records = fieldNames.map(( [ phoneField, nameField ] ) => {
     return {
       fields: Object.assign({}, fieldsBase, {
         'Phone number': koboSubmission[ phoneField ],
+        'Respondent name': koboSubmission[ nameField ] || '',
       })
     };
   });
@@ -162,7 +165,6 @@ app.get(TEST_URL, (req, res) => {
   templateFile('tester.html', {
     TEST_URL,
     PIPE_URL,
-    FIELD_BASE_NAME,
   }, (html) => {
     res.send(html);
   })
