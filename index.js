@@ -155,7 +155,7 @@ const TEST_URL = `${PIPE_URL}/test`;
 app.post(TEST_URL, (req, res) => {
   return res.send(JSON.stringify(
     transformSubmission(req.body)
-  ).replace(API_KEY, 'API_KEY'));
+  ).replace(new RegExp(API_KEY, 'g'), 'API_KEY'));
 });
 
 app.get(TEST_URL, (req, res) => {
