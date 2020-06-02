@@ -46,7 +46,7 @@ const transformSubmission = (koboSubmission) => {
   //   {
   //     fields: {
   //       'Phone number': 'X1',
-  //       'Respondent name': 'Name',
+  //       'Name': 'Name',
   //       'submission_uuid': 'uuid_if_it_exists',
   //     }
   //   },
@@ -56,7 +56,7 @@ const transformSubmission = (koboSubmission) => {
     return {
       fields: Object.assign({}, fieldsBase, {
         'Phone number': koboSubmission[ phoneField ],
-        'Respondent name': koboSubmission[ nameField ] || '',
+        'Name': koboSubmission[ nameField ] || '',
       })
     };
   });
