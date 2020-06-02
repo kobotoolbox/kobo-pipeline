@@ -33,7 +33,10 @@ const transformSubmission = (koboSubmission) => {
   // this is so that we can validate which submissions were successfully passed
   // through to airtable (if we need to).
   const instanceIDfield = 'meta/instanceID';
-  fieldsBase['submission_uuid'] = koboSubmission[instanceIDfield];
+  if (koboSubmission[instanceIDfield]) {
+    fieldsBase['submission_uuid'] = koboSubmission[instanceIDfield]
+      .replace('uuid:', '');
+  }
 
   // fieldNames is an array like [['RECRUIT1_PHONE', 'RECRUIT1_NAME'], ...] for each value
   // found in the submission
@@ -99,7 +102,7 @@ app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 
 app.post(PIPE_URL, (req, res) => {
   if (KOBO_DEBUG) {
-    console.log('RECEIVED: ' + JSON.stringify(req.body, null, 2));
+    console.log('RECEIVED: ' + JSON.stringify(req.body));
   }
 
   const {
@@ -113,7 +116,7 @@ app.post(PIPE_URL, (req, res) => {
   } = transformSubmission(req.body);
 
   if (KOBO_DEBUG) {
-    console.log('SENDING: ' + JSON.stringify(data, null, 2));
+    console.log('SENDING: ' + JSON.stringify(data));
   }
 
   const airtableReq = https.request({
