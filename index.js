@@ -13,6 +13,12 @@ const API_KEY = process.env.AIRTABLE_KEY || 'keykeykey';
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'app0app0app0';
 const DOC_ID = process.env.DOC_ID || 'Table%201';
 
+const KOBO_DEBUG = (process.env.KOBO_DEBUG || 'false').toLowerCase() !== 'false';
+
+if (KOBO_DEBUG) {
+  console.log("DEBUG MODE TRUE. heroku config: KOBO_DEBUG != 'false'")
+}
+
 const transformSubmission = (koboSubmission) => {
   const { id_ref } = koboSubmission;
 
@@ -94,6 +100,10 @@ app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 
 
 app.post(PIPE_URL, (req, res) => {
+  if (KOBO_DEBUG) {
+    console.log('RECEIVED: ' + JSON.stringify(req.body, null, 2));
+  }
+
   const {
     hostname,
     port,
@@ -103,6 +113,10 @@ app.post(PIPE_URL, (req, res) => {
     uuid,
     data,
   } = transformSubmission(req.body);
+
+  if (KOBO_DEBUG) {
+    console.log('SENDING: ' + JSON.stringify(data, null, 2));
+  }
 
   const airtableReq = https.request({
     hostname,
