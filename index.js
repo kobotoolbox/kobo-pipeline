@@ -20,12 +20,12 @@ if (KOBO_DEBUG) {
 }
 
 const transformSubmission = (koboSubmission) => {
-  const id_ref = koboSubmission.id_participant || koboSubmission.id_ref;
+  const { id_participant } = koboSubmission;
 
   let data = {};
   // the template for each "record" passed to airtable
   let fieldsBase = {
-    "Referred by": id_ref,
+    "Referred by": id_participant,
   };
 
   // if there's a field in the submission that endswith "/uuid" then note that
