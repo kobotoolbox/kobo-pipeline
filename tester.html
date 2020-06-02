@@ -31,15 +31,17 @@
         'id_ref': prompt('id_ref'),
         'formhub/uuid': randStr() + randStr(),
       };
-      let n = 1,
-        phonePrompt = prompt('RECRUIT' + n + '_PHONE'),
-        namePrompt = prompt('RECRUIT' + n + '_NAME');
-      while (phonePrompt) {
-        vals['RECRUIT' + n + '_PHONE'] = phonePrompt;
-        vals['RECRUIT' + n + '_NAME'] = namePrompt || '';
-        n++;
-        phonePrompt = prompt('RECRUIT' + n + '_PHONE');
-        namePrompt = prompt('RECRUIT' + n + '_NAME');
+      for (let n = 1; n <= 3; n++) {
+        let baseVar = 'RECRUIT' + n;
+        let phoneVar = baseVar + '_PHONE';
+        let nameVar = baseVar + '_NAME';
+        let phonePrompt = prompt(phoneVar);
+        if (!phonePrompt) {
+          break;
+        }
+        let namePrompt = prompt(nameVar) || '';
+        vals[phoneVar] = phonePrompt;
+        vals[nameVar] = namePrompt;
       }
       $('#post').text(JSON.stringify(vals, null, 2));
       $.ajax({

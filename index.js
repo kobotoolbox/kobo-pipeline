@@ -33,16 +33,13 @@ const transformSubmission = (koboSubmission) => {
 
   // fieldNames is an array like [['RECRUIT1_PHONE', 'RECRUIT1_NAME'], ...] for each value
   // found in the submission
-  let n = 1,
-      fieldNames = [],
-      field = koboSubmission[`RECRUIT${n}_PHONE`];
-  while (field) {
-    fieldNames.push([
-      `RECRUIT${n}_PHONE`,
-      `RECRUIT${n}_NAME`,
-    ]);
-    field = koboSubmission[`RECRUIT${n}_PHONE`];
-  }
+
+  let fieldNames = ['1', '2', '3'].map(( num ) => {
+    return [
+      `RECRUIT${num}_PHONE`,
+      `RECRUIT${num}_NAME`,
+    ];
+  });
 
   // compile the data.records to resemble
   // [
