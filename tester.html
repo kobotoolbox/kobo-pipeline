@@ -29,7 +29,7 @@
       const randStr = () => Math.random().toString(36).substring(2, 15);
       let vals = {
         'id_ref': prompt('id_ref'),
-        'formhub/uuid': randStr() + randStr(),
+        'meta/instanceID': randStr() + randStr(),
       };
       for (let n = 1; n <= 3; n++) {
         let baseVar = 'recruitment/RECRUIT' + n;
