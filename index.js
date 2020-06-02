@@ -20,7 +20,7 @@ if (KOBO_DEBUG) {
 }
 
 const transformSubmission = (koboSubmission) => {
-  const { id_ref } = koboSubmission;
+  const id_ref = koboSubmission.id_participant || koboSubmission.id_ref;
 
   let data = {};
   // the template for each "record" passed to airtable
