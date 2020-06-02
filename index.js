@@ -52,14 +52,17 @@ const transformSubmission = (koboSubmission) => {
   //   },
   //   ...
   // ]
-  data.records = fieldNames.map(( [ phoneField, nameField ] ) => {
-    return {
-      fields: Object.assign({}, fieldsBase, {
-        'Phone number': koboSubmission[ phoneField ],
-        'Name': koboSubmission[ nameField ] || '',
-      })
-    };
-  });
+  data.records = fieldNames.reduce(( arr,  [ phoneField, nameField ] ) => {
+    if ( koboSubmission[ phoneField ] ) {
+      arr.push({
+        fields: Object.assign({}, fieldsBase, {
+          'Phone number': koboSubmission[ phoneField ],
+          'Name': koboSubmission[ nameField ] || '',
+        })
+      });
+    }
+    return arr;
+  }, []);
 
   // generate information for the CURL or the AJAX POST
   let hostname = 'api.airtable.com';
