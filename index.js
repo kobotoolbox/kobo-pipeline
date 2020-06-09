@@ -117,6 +117,7 @@ app.post(PIPE_URL, (req, res) => {
 
   if (KOBO_DEBUG) {
     console.log('SENDING: ' + JSON.stringify(data));
+    console.log(`TO: ${hostname}:${port}${path}#KEY ${headers.Authorization}`);
   }
 
   const airtableReq = https.request({
