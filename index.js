@@ -129,7 +129,9 @@ app.post(PIPE_URL, (req, res) => {
   }, (airtableRes) => {
     console.log(`forwarding submission: ${uuid} ${new Date()} status=${airtableRes.statusCode}`)
     const { statusCode } = airtableRes;
+    airtableRes.setEncoding('utf8');
     airtableRes.on('data', (d) => {
+      console.log(d);
       console.log('received by airtable');
       res.send(JSON.stringify({
         statusCode,
