@@ -82,15 +82,12 @@ const transformSubmission = (koboSubmission) => {
   };
   let url = `https://${hostname}${path}`;
 
-  let post_response_actions = [];
-
   return {
     hostname,
     path,
     method,
     port,
     headers,
-    post_response_actions,
     data,
     uuid: fieldsBase['submission_uuid'],
     curl: `curl -v -X POST ${url} \\
