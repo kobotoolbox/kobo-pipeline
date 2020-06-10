@@ -79,7 +79,7 @@ class Participant {
   }
   updateParticipantsReferred (values) {
     let existing = this.stringifyList(this.participantsReferred);
-    let desired = this.stringifyList(values);
+    let desired = this.stringifyList([...values]);
     if (desired !== existing) {
       this._update = {
         id: this.id,
