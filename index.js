@@ -82,12 +82,15 @@ const transformSubmission = (koboSubmission) => {
   };
   let url = `https://${hostname}${path}`;
 
+  let post_response_actions = [];
+
   return {
     hostname,
     path,
     method,
     port,
     headers,
+    post_response_actions,
     data,
     uuid: fieldsBase['submission_uuid'],
     curl: `curl -v -X POST ${url} \\
@@ -98,6 +101,28 @@ const transformSubmission = (koboSubmission) => {
 }
 
 app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
+
+
+function parseResponse (responseString) {
+  const { records } = JSON.parse(responseString);
+  const referrals = [];
+  let referred_by;
+  records.forEach(function({ fields }) {
+    referred_by = fields['Referred by'];
+    referrals.push(fields['Participant ID']);
+  });
+  return {
+    post_response_actions: [
+      ['query', {'Participant ID': referred_by, 'field': 'Participants referred'}],
+      ['append_ids_to_list', referrals],
+      ["update_record", {
+        'Participant ID': referred_by,
+        'field': 'Participants referred',
+        'value': ['existing_referrals_plus', referrals],
+      }],
+    ]
+  };
+}
 
 
 app.post(PIPE_URL, (req, res) => {
@@ -131,7 +156,7 @@ app.post(PIPE_URL, (req, res) => {
     const { statusCode } = airtableRes;
     airtableRes.setEncoding('utf8');
     airtableRes.on('data', (d) => {
-      console.log(d);
+      console.log(JSON.stringify(parseResponse(d)));
       console.log('received by airtable');
       res.send(JSON.stringify({
         statusCode,
