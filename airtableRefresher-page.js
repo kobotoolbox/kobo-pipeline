@@ -1,5 +1,4 @@
-
-const intervalMins = 0.5;
+const intervalMins = 1;
 const intervalDesc = `${intervalMins} minute${intervalMins === 1 ? '' : 's'}`;
 
 let tickerUpdate;
@@ -8,26 +7,38 @@ let baseStatus = '';
 
 const msToWait = 1000 * 60 * intervalMins + 333;
 
-function startInterval (statusEl, logEl, cb) {
-  function next() {
-    let nextTimeToRefer = (new Date()).getTime() + msToWait;
-    window.setTimeout(function () {
-      statusEl.text(`Update in progress...`)
-      cb().then(function({ message, finished }){
-        // statusEl.text(`Update in progress...`)
-        if (message != 'OK') {
-          let li = $('<li>');
-          $('<span>').text(new Date().toISOString() + ' : ').appendTo(li);
-          $('<code>').text(resp).appendTo(li);
-          li.prependTo(logEl);
-        } else {
-          baseStatus = '&check; ...';
-        }
-        window.setTimeout(next, 1000);
-      }).catch(function(err){
-        statusEl.text(`Error: ${err}.`);
-      });
-    }, msToWait);
+function startInterval (statusEl, logEl, buttonEl, cb) {
+  let nextTimeToRefer = (new Date()).getTime() + msToWait;
+  let nextUpdate;
+
+  function setUpdateInMotion () {
+    statusEl.text(`Update in progress...`)
+    cb().then(function({ message, finished }){
+      // statusEl.text(`Update in progress...`)
+      if (message != 'OK') {
+        let li = $('<li>');
+        $('<span>').text(new Date().toISOString() + ' : ').appendTo(li);
+        $('<code>').text(resp).appendTo(li);
+        li.prependTo(logEl);
+      } else {
+        baseStatus = '&check; ...';
+      }
+      window.setTimeout(startCountdown, 0);
+    }).catch(function(err){
+      statusEl.text(`Error: ${err}.`);
+    });
+  }
+
+  buttonEl.click(function () {
+    if (nextUpdate) {
+      window.clearTimeout(nextUpdate);
+      setUpdateInMotion();
+    }
+  });
+
+  function startCountdown() {
+    nextTimeToRefer = (new Date()).getTime() + msToWait;
+    nextUpdate = window.setTimeout(setUpdateInMotion, msToWait);
     if (tickerUpdate) {
       window.clearInterval(tickerUpdate);
     }
@@ -40,7 +51,7 @@ function startInterval (statusEl, logEl, cb) {
       }
     }, 1000);
   }
-  next();
+  startCountdown();
 }
 
 jQuery(function ($) {
@@ -55,18 +66,9 @@ jQuery(function ($) {
   }
   const loc = window.location.href;
   const mainEl = $('#main');
-  mainEl.html(`
-    Refreshing airtable references every ${intervalDesc}.
-    <br>
-    <p id='next'></p>
-    <p id='status'></p>
-    <button>Refresh now</button>
-    <ul id='log'>
-    </ul>
-    <br>
-  `);
+  $('#interval-description', mainEl).text(intervalDesc);
   let logEl = $('#log');
   let statusEl = $('#status');
-  $('button', mainEl).click(triggerRefresh);
-  startInterval(statusEl, logEl, triggerRefresh);
+  let buttonEl = $('button', mainEl);;
+  startInterval(statusEl, logEl, buttonEl, triggerRefresh);
 });
