@@ -16,6 +16,7 @@
   "author": "@dorey",
   "license": "LGPL-3.0-or-later",
   "dependencies": {
+    "airtable": "^0.8.1",
     "body-parser": "^1.19.0",
     "express": "^4.17.1"
   }
