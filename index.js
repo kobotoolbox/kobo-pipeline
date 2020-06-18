@@ -16,6 +16,8 @@ const API_KEY = process.env.AIRTABLE_KEY || 'keykeykey';
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'app0app0app0';
 const DOC_ID = process.env.DOC_ID || 'Table%201';
 
+const AUTO_REFRESH_AIRTABLE = !!process.env.AUTO_REFRESH_AIRTABLE;
+
 const KOBO_DEBUG = (process.env.KOBO_DEBUG || 'false').toLowerCase() !== 'false';
 
 if (KOBO_DEBUG) {
@@ -158,9 +160,21 @@ app.post(PIPE_URL, (req, res) => {
     airtableRes.on('data', (d) => {
       console.log(JSON.stringify(parseResponse(d)));
       console.log('received by airtable');
-      res.send(JSON.stringify({
-        statusCode,
-      }));
+      if (AUTO_REFRESH_AIRTABLE) {
+          console.log('Now updating referrals');
+          callAirtableRefresher().then(({ message, finished }) => {
+            console.log('Finished updating referrals');
+            console.log(message);
+            console.log(finished);
+            res.send(JSON.stringify({
+              statusCode,
+            }));
+          });
+      } else {
+        res.send(JSON.stringify({
+          statusCode,
+        }));
+      }
     });
   });
 
