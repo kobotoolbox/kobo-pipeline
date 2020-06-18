@@ -2,6 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser');
 const https = require('https');
 const fs = require('fs');
+const { callAirtableRefresher } = require('./updateReferrals');
 
 const app = express();
 app.use(bodyParser.json());
@@ -9,6 +10,8 @@ app.use(bodyParser.json());
 const port = process.env.PORT || 3000;
 const _pipe_name = process.env.PIPE_NAME || 'Pipeline'
 const PIPE_URL = '/' + _pipe_name;
+const TEST_URL = `${PIPE_URL}/test`;
+const AIRTABLE_REFRESH_URL = `${PIPE_URL}/airtable`;
 const API_KEY = process.env.AIRTABLE_KEY || 'keykeykey';
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'app0app0app0';
 const DOC_ID = process.env.DOC_ID || 'Table%201';
@@ -189,11 +192,29 @@ app.get(PIPE_URL, (req, res) => {
   }, (html) => {
     res.send(html);
   });
-})
+});
 
 // TESTER available at /Pipeline/test
 // It's basically a way to send mock data to the "transformSubmission()" function
-const TEST_URL = `${PIPE_URL}/test`;
+
+app.get(AIRTABLE_REFRESH_URL, (req, res) => {
+  fs.readFile(__dirname + '/airtableRefresher-page.js', (err, data) => {
+    let AIRTABLE_REFRESHER_SCRIPT = data.toString();
+    templateFile('airtableRefresher.html', {
+      AIRTABLE_REFRESHER_SCRIPT,
+    }, (html) => {
+      res.send(html);
+    });
+  });
+});
+app.post(AIRTABLE_REFRESH_URL, (req, res) => {
+  callAirtableRefresher().then(({ message, finished }) => {
+    res.send(JSON.stringify({
+      message,
+      finished,
+    }));
+  });
+});
 
 app.post(TEST_URL, (req, res) => {
   return res.send(JSON.stringify(

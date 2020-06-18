@@ -16,7 +16,7 @@ const base = new Airtable({ apiKey: AIRTABLE_KEY }).base(AIRTABLE_BASE_ID);
 const DELAY = 0;
 
 // show `.` when a request to airtable is run
-const SHOW_STATUS = true;
+const SHOW_STATUS = process.env.SHOW_STATUS || false;
 // airtable api request page size (100 is default)
 const RECORDS_PER_PAGE = 100;
 
@@ -25,7 +25,26 @@ const PARTICIPANTS_REFERRED = 'Participants referred';
 const REFERRED_BY = 'Referred by';
 const PARTICIPANT_ID = 'Participant ID';
 
-function main() {
+function callAirtableRefresher () {
+  return new Promise((success, fail)=>{
+    getParticipants().then((participants) => {
+      calculateUpdates(participants).then((updates) => {
+        if (updates.length === 0) {
+          success({
+            message: 'OK',
+            finished: [],
+          })
+        } else {
+          setTimeout(() => {
+            sendUpdatesToAirtable(participants, updates).then(success);
+          }, DELAY);
+        }
+      });
+    });
+  })
+}
+
+function main () {
   process.stdout.write(`Running script to update ` +
                        `AirTable with records of referrals`)
   if (DELAY > 0) {
@@ -106,7 +125,9 @@ const getParticipants = () => {
         records.forEach(function(record) {
           _parts.push(new Participant(record));
         });
-        process.stdout.write('.');
+        if (SHOW_STATUS) {
+          process.stdout.write('.');
+        }
         setTimeout(() => {
           if (SHOW_STATUS) {
             process.stdout.write('.');
@@ -198,4 +219,6 @@ const sendUpdatesToAirtable = (participants, updates) => {
   });
 }
 
-main();
+module.exports = {
+  callAirtableRefresher: callAirtableRefresher
+};
