@@ -109,7 +109,7 @@ function parseResponse (responseString) {
   const { records } = JSON.parse(responseString);
   const referrals = [];
   let referred_by;
-  records.forEach(function({ fields }) {
+  (records || []).forEach(function({ fields }) {
     referred_by = fields['Reclutado por'];
     referrals.push(fields['ID del participante']);
   });
