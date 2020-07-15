@@ -110,16 +110,16 @@ function parseResponse (responseString) {
   const referrals = [];
   let referred_by;
   records.forEach(function({ fields }) {
-    referred_by = fields['Referred by'];
-    referrals.push(fields['Participant ID']);
+    referred_by = fields['Reclutado por'];
+    referrals.push(fields['ID del participante']);
   });
   return {
     post_response_actions: [
-      ['query', {'Participant ID': referred_by, 'field': 'Participants referred'}],
+      ['query', {'ID del participante': referred_by, 'field': 'Reclutas'}],
       ['append_ids_to_list', referrals],
       ["update_record", {
         'Participant ID': referred_by,
-        'field': 'Participants referred',
+        'field': 'Reclutas',
         'value': ['existing_referrals_plus', referrals],
       }],
     ]
