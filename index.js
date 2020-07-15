@@ -48,8 +48,8 @@ const transformSubmission = (koboSubmission) => {
 
   let fieldNames = ['1', '2', '3'].map(( num ) => {
     return [
-      `recruitment/RECRUIT${num}_PHONE`,
-      `recruitment/RECRUIT${num}_NAME`,
+      `RECRUITMENT/RECRUIT${num}_PHONE`,
+      `RECRUITMENT/RECRUIT${num}_NAME`,
     ];
   });
 
