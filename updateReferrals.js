@@ -21,9 +21,9 @@ const SHOW_STATUS = process.env.SHOW_STATUS || false;
 const RECORDS_PER_PAGE = 100;
 
 // fields with spaces
-const PARTICIPANTS_REFERRED = 'Participants referred';
-const REFERRED_BY = 'Referred by';
-const PARTICIPANT_ID = 'Participant ID';
+const PARTICIPANTS_REFERRED = 'Reclutas';
+const REFERRED_BY = 'Reclutado por';
+const PARTICIPANT_ID = 'ID del participante';
 
 function callAirtableRefresher () {
   return new Promise((success, fail)=>{
