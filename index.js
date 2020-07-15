@@ -30,7 +30,7 @@ const transformSubmission = (koboSubmission) => {
   let data = {};
   // the template for each "record" passed to airtable
   let fieldsBase = {
-    "Referred by": id_participant,
+    "Reclutado por": id_participant,
   };
 
   // if there's a field in the submission that endswith "/uuid" then note that
@@ -68,8 +68,8 @@ const transformSubmission = (koboSubmission) => {
     if ( koboSubmission[ phoneField ] ) {
       arr.push({
         fields: Object.assign({}, fieldsBase, {
-          'Phone number': koboSubmission[ phoneField ],
-          'Name': koboSubmission[ nameField ] || '',
+          'Número de teléfono': koboSubmission[ phoneField ],
+          'Nombre': koboSubmission[ nameField ] || '',
         })
       });
     }
