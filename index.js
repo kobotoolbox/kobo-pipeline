@@ -203,7 +203,7 @@ const { exec } = require("child_process");
 
 
 app.get(PIPE_URL, (req, res) => {
-  exec('python3 --version', (error, stdout, stderr) => {
+  exec('ls /usr/bin | grep python', (error, stdout, stderr) => {
       console.log(`which python: ${stdout}`);
       templateFile('setup.html', {
         PIPE_URL,
