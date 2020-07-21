@@ -199,12 +199,17 @@ function templateFile(path, variables, callback) {
 }
 
 
+const { exec } = require("child_process");
+
 
 app.get(PIPE_URL, (req, res) => {
-  templateFile('setup.html', {
-    PIPE_URL,
-  }, (html) => {
-    res.send(html);
+  exec('which python', (error, stdout, stderr) => {
+      console.log(`wchich python: ${stdout}`);
+      templateFile('setup.html', {
+        PIPE_URL,
+      }, (html) => {
+        res.send(html);
+      });
   });
 });
 
