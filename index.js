@@ -203,8 +203,8 @@ const { exec } = require("child_process");
 
 
 app.get(PIPE_URL, (req, res) => {
-  exec('which python', (error, stdout, stderr) => {
-      console.log(`wchich python: ${stdout}`);
+  exec('python3 --version', (error, stdout, stderr) => {
+      console.log(`which python: ${stdout}`);
       templateFile('setup.html', {
         PIPE_URL,
       }, (html) => {
