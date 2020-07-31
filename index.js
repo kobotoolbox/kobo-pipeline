@@ -20,6 +20,7 @@ const AUTO_REFRESH_AIRTABLE = !!process.env.AUTO_REFRESH_AIRTABLE;
 
 // these fields are in the submission
 const KOBODATA_ID_PARTICIPANT = 'id_participant';
+const KOBODATA_TODAY = 'today';
 const KOBODATA_NAME_PATH = (n) => `RECRUITMENT/RECRUIT${n}_NAME`;
 const KOBODATA_PHONE_PATH = (n) => `RECRUITMENT/RECRUIT${n}_PHONE`;
 const KOBODATA_UUID_PATH = 'meta/instanceID';
@@ -49,6 +50,7 @@ const transformSubmission = (koboSubmission) => {
   // the template for each "record" passed to airtable
   let fieldsBase = {
     [AT_PARTICIPANT_ID_RECRUITED_BY]: koboSubmission[KOBODATA_ID_PARTICIPANT],
+    [AT_TIMESTAMP]: koboSubmission[KOBODATA_TODAY],
   };
 
   // if there's a field in the submission that endswith "/uuid" then note that
