@@ -18,9 +18,13 @@ const DOC_ID = process.env.DOC_ID || 'Table%201';
 
 const AUTO_REFRESH_AIRTABLE = !!process.env.AUTO_REFRESH_AIRTABLE;
 
-// these fields are in the submission
+const KOBO_DEBUG = (process.env.KOBO_DEBUG || 'false').toLowerCase() !== 'false';
+
+// these fields are retrieved from the submission
 const KOBODATA_ID_PARTICIPANT = 'id_participant';
 const KOBODATA_TODAY = 'today';
+const KOBODATA_CARRIER = 'CLOSING/CARRIER';
+const KOBODATA_INCENTIVE = 'CLOSING/PHONE_INCENTIVE';
 const KOBODATA_NAME_PATH = (n) => `RECRUITMENT/RECRUIT${n}_NAME`;
 const KOBODATA_PHONE_PATH = (n) => `RECRUITMENT/RECRUIT${n}_PHONE`;
 const KOBODATA_UUID_PATH = 'meta/instanceID';
@@ -34,12 +38,13 @@ const AT_RECRUITS_COL = 'Reclutas';
 const AT_PHONE_NUMBER_COL = 'Número de teléfono';
 const AT_NAME_COL = 'Nombre';
 const AT_TIMESTAMP = 'Fecha envio invitacion';
+const AT_CARRIER = 'Operador de telefonía';
+const AT_INCENTIVE = 'Teléfono para incentivo';
 
 // _VARIABLES are used in logs, but not elsewhere.
 const _EXISTING_REFERALS_PLUS = 'existing_referrals_plus';
 const _PARTICIPANT_ID = 'Participant ID';
 
-const KOBO_DEBUG = (process.env.KOBO_DEBUG || 'false').toLowerCase() !== 'false';
 
 if (KOBO_DEBUG) {
   console.log("DEBUG MODE TRUE. heroku config: KOBO_DEBUG != 'false'")
@@ -51,6 +56,8 @@ const transformSubmission = (koboSubmission) => {
   let fieldsBase = {
     [AT_PARTICIPANT_ID_RECRUITED_BY]: koboSubmission[KOBODATA_ID_PARTICIPANT],
     [AT_TIMESTAMP]: koboSubmission[KOBODATA_TODAY],
+    [AT_CARRIER]: koboSubmission[KOBODATA_CARRIER] || '',
+    [AT_INCENTIVE]: koboSubmission[KOBODATA_INCENTIVE] || '',
   };
 
   // if there's a field in the submission that endswith "/uuid" then note that
