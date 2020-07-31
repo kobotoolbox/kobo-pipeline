@@ -18,6 +18,26 @@ const DOC_ID = process.env.DOC_ID || 'Table%201';
 
 const AUTO_REFRESH_AIRTABLE = !!process.env.AUTO_REFRESH_AIRTABLE;
 
+// these fields are in the submission
+const KOBODATA_ID_PARTICIPANT = 'id_participant';
+const KOBODATA_NAME_PATH = (n) => `RECRUITMENT/RECRUIT${n}_NAME`;
+const KOBODATA_PHONE_PATH = (n) => `RECRUITMENT/RECRUIT${n}_PHONE`;
+const KOBODATA_UUID_PATH = 'meta/instanceID';
+
+
+// AT_ fields are column names in the destination document on airtable
+const AT_UUID = 'submission_uuid';
+const AT_ID_OF_PARTICIPANT = 'ID del participante';
+const AT_PARTICIPANT_ID_RECRUITED_BY = 'Reclutado por';
+const AT_RECRUITS_COL = 'Reclutas';
+const AT_PHONE_NUMBER_COL = 'Número de teléfono';
+const AT_NAME_COL = 'Nombre';
+const AT_TIMESTAMP = 'Fecha envio invitacion';
+
+// _VARIABLES are used in logs, but not elsewhere.
+const _EXISTING_REFERALS_PLUS = 'existing_referrals_plus';
+const _PARTICIPANT_ID = 'Participant ID';
+
 const KOBO_DEBUG = (process.env.KOBO_DEBUG || 'false').toLowerCase() !== 'false';
 
 if (KOBO_DEBUG) {
@@ -25,21 +45,18 @@ if (KOBO_DEBUG) {
 }
 
 const transformSubmission = (koboSubmission) => {
-  const { id_participant } = koboSubmission;
-
   let data = {};
   // the template for each "record" passed to airtable
   let fieldsBase = {
-    "Reclutado por": id_participant,
+    [AT_PARTICIPANT_ID_RECRUITED_BY]: koboSubmission[KOBODATA_ID_PARTICIPANT],
   };
 
   // if there's a field in the submission that endswith "/uuid" then note that
   // field as the value that will get passed to "submission_uuid"
   // this is so that we can validate which submissions were successfully passed
   // through to airtable (if we need to).
-  const instanceIDfield = 'meta/instanceID';
-  if (koboSubmission[instanceIDfield]) {
-    fieldsBase['submission_uuid'] = koboSubmission[instanceIDfield]
+  if (koboSubmission[KOBODATA_UUID_PATH]) {
+    fieldsBase[AT_UUID] = koboSubmission[KOBODATA_UUID_PATH]
       .replace('uuid:', '');
   }
 
@@ -48,8 +65,8 @@ const transformSubmission = (koboSubmission) => {
 
   let fieldNames = ['1', '2', '3'].map(( num ) => {
     return [
-      `RECRUITMENT/RECRUIT${num}_PHONE`,
-      `RECRUITMENT/RECRUIT${num}_NAME`,
+      KOBODATA_PHONE_PATH(num),
+      KOBODATA_NAME_PATH(num),
     ];
   });
 
@@ -59,17 +76,18 @@ const transformSubmission = (koboSubmission) => {
   //     fields: {
   //       'Phone number': 'X1',
   //       'Name': 'Name',
-  //       'submission_uuid': 'uuid_if_it_exists',
+  //       AT_UUID: 'uuid_if_it_exists',
   //     }
   //   },
   //   ...
   // ]
+
   data.records = fieldNames.reduce(( arr,  [ phoneField, nameField ] ) => {
     if ( koboSubmission[ phoneField ] ) {
       arr.push({
         fields: Object.assign({}, fieldsBase, {
-          'Número de teléfono': koboSubmission[ phoneField ],
-          'Nombre': koboSubmission[ nameField ] || '',
+          [AT_PHONE_NUMBER_COL]: koboSubmission[ phoneField ],
+          [AT_NAME_COL]: koboSubmission[ nameField ] || '',
         })
       });
     }
@@ -94,7 +112,7 @@ const transformSubmission = (koboSubmission) => {
     port,
     headers,
     data,
-    uuid: fieldsBase['submission_uuid'],
+    uuid: fieldsBase[AT_UUID],
     curl: `curl -v -X POST ${url} \\
       -H "Authorization: Bearer ${API_KEY}" \\
       -H "Content-Type: application/json" \\
@@ -104,23 +122,25 @@ const transformSubmission = (koboSubmission) => {
 
 app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 
-
 function parseResponse (responseString) {
-  const { records } = JSON.parse(responseString);
+  const records = JSON.parse(responseString).records || [];
   const referrals = [];
   let referred_by;
-  (records || []).forEach(function({ fields }) {
-    referred_by = fields['Reclutado por'];
-    referrals.push(fields['ID del participante']);
+  records.forEach(function({ fields }) {
+    referred_by = fields[AT_PARTICIPANT_ID_RECRUITED_BY];
+    referrals.push(fields[AT_ID_OF_PARTICIPANT]);
   });
   return {
     post_response_actions: [
-      ['query', {'ID del participante': referred_by, 'field': 'Reclutas'}],
+      ['query', {
+        [AT_ID_OF_PARTICIPANT]: referred_by,
+        'field': AT_RECRUITS_COL,
+      }],
       ['append_ids_to_list', referrals],
       ["update_record", {
-        'Participant ID': referred_by,
-        'field': 'Reclutas',
-        'value': ['existing_referrals_plus', referrals],
+        [_PARTICIPANT_ID]: referred_by,
+        'field': AT_RECRUITS_COL,
+        'value': [_EXISTING_REFERALS_PLUS, referrals],
       }],
     ]
   };
