@@ -21,9 +21,7 @@ const SHOW_STATUS = process.env.SHOW_STATUS || false;
 const RECORDS_PER_PAGE = 100;
 
 // fields with spaces
-const PARTICIPANTS_REFERRED = 'Reclutas';
-const REFERRED_BY = 'Reclutado por';
-const PARTICIPANT_ID = 'ID del participante';
+const { AT } = require('./constants');
 
 function callAirtableRefresher () {
   return new Promise((success, fail)=>{
@@ -36,11 +34,13 @@ function callAirtableRefresher () {
           })
         } else {
           setTimeout(() => {
-            sendUpdatesToAirtable(participants, updates).then(success);
+            sendUpdatesToAirtable(participants, updates)
+              .then(success)
+              .catch(fail);
           }, DELAY);
         }
       });
-    });
+    }).catch(fail);
   })
 }
 
@@ -82,31 +82,56 @@ function main () {
 }
 
 
+const PARTICIPANTS_BY_SIMPLE_ID = {};
 
 class Participant {
   constructor ({ _rawJson, fields, id }) {
     this.id = id;
-    this.createdTime = new Date(_rawJson.createdTime);
-    this.simpleId = fields[PARTICIPANT_ID];
-    this.referredBy = fields[REFERRED_BY];
-    this.participantsReferred = fields[PARTICIPANTS_REFERRED] || [];
+    this.fields = fields;
 
-    this._update = false;
+    this.createdTime = new Date(_rawJson.createdTime);
+
+    this._AT_NAME = fields[AT.NAME];
+    this._AT_RECRUITED_BY_ID = fields[AT.RECRUITED_BY_ID];
+    this._AT_RECRUITS = fields[AT.RECRUITS_COL] || [];
+    this._AT_ID_OF_PARTICIPANT = fields[AT.ID_OF_PARTICIPANT];
+
+    PARTICIPANTS_BY_SIMPLE_ID[this._AT_ID_OF_PARTICIPANT] = this;
+
+    this._CALCULATED_REFERRALS = [];
+    this._REFERRED_PARTICIPANTS = [];
+    this._update = { id: this.id, fields: {} };
+  }
+  setReferrer () {
+    this._REFERRER = PARTICIPANTS_BY_SIMPLE_ID[this._AT_RECRUITED_BY_ID];
+    if (this._REFERRER) {
+      this._REFERRER._CALCULATED_REFERRALS.push(this.id);
+      this._REFERRER._REFERRED_PARTICIPANTS.push(this);
+    }
+  }
+  setCarrierIfNeeded () {
+    if (this._REFERRER) {
+      [
+        [AT.CARRIER, AT.REFS_CARRIER],
+        [AT.INCENTIVE, AT.REFS_INCENTIVE],
+      ].forEach(([destCol, origCol]) => {
+        let val = this.fields[origCol];
+        if (val && this._REFERRER.fields[destCol] !== val) {
+          this._REFERRER._update.fields[destCol] = val;
+        }
+      });
+    }
+  }
+  decideIfUpdatesNeeded () {
+    const knownReferrals = this.stringifyList(this._AT_RECRUITS);
+    const derivedReferrals = this.stringifyList(this._CALCULATED_REFERRALS);
+    if (derivedReferrals !== knownReferrals) {
+      this._update.fields[AT.RECRUITS_COL] = this._CALCULATED_REFERRALS;
+    }
+    this.needsUpdates = Object.keys(this._update.fields).length > 0;
   }
   stringifyList (arr) {
     return JSON.stringify(arr.sort());
-  }
-  updateParticipantsReferred (values) {
-    let existing = this.stringifyList(this.participantsReferred);
-    let desired = this.stringifyList([...values]);
-    if (desired !== existing) {
-      this._update = {
-        id: this.id,
-        fields: {
-          [PARTICIPANTS_REFERRED]: values,
-        }
-      };
-    }
   }
 }
 
@@ -119,7 +144,14 @@ const getParticipants = () => {
     let _parts = [];
     base('Respondent tracker').select({
         pageSize: RECORDS_PER_PAGE,
-        fields: [PARTICIPANT_ID, REFERRED_BY, PARTICIPANTS_REFERRED],
+        fields: [AT.ID_OF_PARTICIPANT,
+                 AT.NAME,
+                 AT.RECRUITED_BY_ID,
+                 AT.CARRIER,
+                 AT.INCENTIVE,
+                 AT.REFS_CARRIER,
+                 AT.REFS_INCENTIVE,
+                 AT.RECRUITS_COL],
         view: "All data"
     }).eachPage(function page(records, fetchNextPage) {
         records.forEach(function(record) {
@@ -144,7 +176,6 @@ const getParticipants = () => {
   });
 }
 
-
 const calculateUpdates = (_participants) => {
   return new Promise((success, fail) => {
     // sort by createdTime
@@ -153,32 +184,16 @@ const calculateUpdates = (_participants) => {
       return a.createdTime < b.createdTime ? -1 : 1
     });
 
-    // create an object with empty lists
-    let referrals = participants.reduce((referrals, participant) => {
-      referrals[participant.simpleId] = [];
-      return referrals;
-    }, {});
+    participants.forEach((p) => p.setReferrer());
+    participants.forEach((p) => p.setCarrierIfNeeded());
+    participants.forEach((p) => p.decideIfUpdatesNeeded());
 
-    // populate lists with people they referred
+    let updateParams = [];
     participants.forEach((participant) => {
-      let { referredBy } = participant;
-      if (referrals[referredBy]) {
-        referrals[referredBy].push(participant.id);
-      } // else: participant not found, e.g. "0"
+      if (participant.needsUpdates) {
+        updateParams.push(participant._update);
+      }
     });
-
-    // compare populated list with values already in airtable
-    participants.forEach((participant) => {
-      participant.updateParticipantsReferred(referrals[participant.simpleId]);
-    });
-
-    // gather values that need to be updated (non-false)
-    let updateParams = participants.map(
-      (participant) => participant._update
-    ).filter(
-      (value) => value !== false
-    );
-
     success(updateParams);
   });
 }
@@ -196,13 +211,13 @@ const sendUpdatesToAirtable = (participants, updates) => {
       let finished = [];
       records.forEach((record) => {
         let { fields } = record;
-        let referredList = fields[PARTICIPANTS_REFERRED] || [];
+        let referredList = fields[AT.RECRUITS_COL] || [];
         let ids = referredList.map(
           (pId) => (
-            byId[pId] ? `${byId[pId].simpleId}` : '?'
+            byId[pId] ? `${byId[pId]._AT_ID_OF_PARTICIPANT}` : '?'
           )
         );
-        let destId = fields[PARTICIPANT_ID];
+        let destId = fields[AT.ID_OF_PARTICIPANT];
         finished.push([destId, ids]);
         messages.push(
           `UPDATED ${destId}: [${ids.join(', ')}]`
