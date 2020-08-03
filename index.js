@@ -40,8 +40,8 @@ const transformSubmission = (koboSubmission) => {
   let fieldsBase = {
     [AT.RECRUITED_BY_ID]: koboSubmission[KOBODATA.ID_PARTICIPANT],
     [AT.TIMESTAMP]: koboSubmission[KOBODATA.TODAY],
-    [AT.CARRIER]: koboSubmission[KOBODATA.CARRIER] || '',
-    [AT.INCENTIVE]: koboSubmission[KOBODATA.INCENTIVE] || '',
+    [AT.REFS_CARRIER]: koboSubmission[KOBODATA.CARRIER] || '',
+    [AT.REFS_INCENTIVE]: koboSubmission[KOBODATA.INCENTIVE] || '',
   };
 
   // if there's a field in the submission that endswith "/uuid" then note that
