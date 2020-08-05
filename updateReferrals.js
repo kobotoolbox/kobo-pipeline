@@ -157,7 +157,7 @@ const getParticipants = () => {
                  AT.REFS_CARRIER,
                  AT.REFS_INCENTIVE,
                  AT.RECRUITS_COL],
-        view: "All data"
+        view: AT.VIEW_NAME,
     }).eachPage(function page(records, fetchNextPage) {
         records.forEach(function(record) {
           _parts.push(new Participant(record));
@@ -241,4 +241,5 @@ const sendUpdatesToAirtable = (participants, updates) => {
 
 module.exports = {
   callAirtableRefresher,
+  main,
 };
