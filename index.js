@@ -174,9 +174,12 @@ app.post(PIPE_URL, (req, res) => {
     console.log(`forwarding submission: ${uuid} ${new Date()} status=${airtableRes.statusCode}`)
     const { statusCode } = airtableRes;
     airtableRes.setEncoding('utf8');
-    airtableRes.on('data', (d) => {
-      console.log(JSON.stringify(parseResponse(d)));
-      console.log('received by airtable');
+    airtableRes.on('data', (d, ...args) => {
+      if (KOBO_DEBUG) {
+        console.log(d, args);
+        console.log(JSON.stringify(parseResponse(d)));
+        console.log('received by airtable');
+      }
       if (AUTO_REFRESH_AIRTABLE) {
           console.log('Now updating referrals');
           callAirtableRefresher().then(({ message, finished }) => {
