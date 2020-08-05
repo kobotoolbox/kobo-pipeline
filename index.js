@@ -34,6 +34,10 @@ if (KOBO_DEBUG) {
   console.log("DEBUG MODE TRUE. heroku config: KOBO_DEBUG != 'false'")
 }
 
+function logError (err) {
+  console.error(err);
+}
+
 const transformSubmission = (koboSubmission) => {
   let data = {};
   // the template for each "record" passed to airtable
@@ -182,7 +186,7 @@ app.post(PIPE_URL, (req, res) => {
             res.send(JSON.stringify({
               statusCode,
             }));
-          });
+          }).catch(logError);
       } else {
         res.send(JSON.stringify({
           statusCode,

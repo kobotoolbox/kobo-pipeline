@@ -23,6 +23,11 @@ const RECORDS_PER_PAGE = 100;
 // fields with spaces
 const { AT } = require('./constants');
 
+function logError (arg) {
+  console.error(arg);
+}
+
+
 function callAirtableRefresher () {
   return new Promise((success, fail)=>{
     getParticipants().then((participants) => {
@@ -39,7 +44,7 @@ function callAirtableRefresher () {
               .catch(fail);
           }, DELAY);
         }
-      });
+      }).catch(fail);
     }).catch(fail);
   })
 }
@@ -77,8 +82,8 @@ function main () {
           });
         }, DELAY);
       }
-    });
-  });
+    }).catch(logError);
+  }).catch(logError);
 }
 
 
@@ -142,7 +147,7 @@ const getParticipants = () => {
   }
   return new Promise((success, fail) => {
     let _parts = [];
-    base('Respondent tracker').select({
+    base(AT.TABLE_NAME).select({
         pageSize: RECORDS_PER_PAGE,
         fields: [AT.ID_OF_PARTICIPANT,
                  AT.NAME,
@@ -201,7 +206,7 @@ const calculateUpdates = (_participants) => {
 
 const sendUpdatesToAirtable = (participants, updates) => {
   return new Promise((success, fail) => {
-    base('Respondent tracker').update(updates, function (err, records) {
+    base(AT.TABLE_NAME).update(updates, function (err, records) {
       if (err) { console.error(err); return fail(err); }
 
       let byId = {};
@@ -235,5 +240,5 @@ const sendUpdatesToAirtable = (participants, updates) => {
 }
 
 module.exports = {
-  callAirtableRefresher: callAirtableRefresher
+  callAirtableRefresher,
 };

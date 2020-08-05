@@ -11,6 +11,7 @@ module.exports = {
   },
   // Fields used in the column headers of the AirTable (AT) document
   AT: {
+    TABLE_NAME: 'Respondent tracker',
     CARRIER: 'Operador de telefonía',
     ID_OF_PARTICIPANT: 'ID del participante',
     INCENTIVE: 'Teléfono para incentivo',
