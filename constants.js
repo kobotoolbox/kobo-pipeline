@@ -13,12 +13,12 @@ module.exports = {
   AT: {
     VIEW_NAME: process.env.AT_VIEW_NAME || 'All data',
     TABLE_NAME: process.env.AT_TABLE_NAME || 'Respondent tracker',
-    CARRIER: 'Operador de telefonía',
     ID_OF_PARTICIPANT: 'ID del participante',
     NAME: 'Nombre',
     RECRUITED_BY_ID: 'Reclutado por',
     PHONE_NUMBER_COL: 'Número de teléfono',
     RECRUITS_COL: 'Reclutas',
+    CARRIER: 'Airtable COL CARRIER',
     INCENTIVE: 'Airtable COL TEL INCENTIVO',
     REFS_CARRIER: 'Airtable COL REFS CARRIER',
     REFS_INCENTIVE: 'Airtable COL REFS INCENTIVE',
