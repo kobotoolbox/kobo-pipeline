@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const https = require('https');
 const fs = require('fs');
 const { callAirtableRefresher } = require('./updateReferrals');
+const { setCarrierById } = require('./setCarrierById');
 
 const app = express();
 app.use(bodyParser.json());
@@ -45,7 +46,7 @@ const transformSubmission = (koboSubmission) => {
     [AT.RECRUITED_BY_ID]: koboSubmission[KOBODATA.ID_PARTICIPANT],
     [AT.TIMESTAMP]: koboSubmission[KOBODATA.TODAY],
     [AT.REFS_CARRIER]: koboSubmission[KOBODATA.CARRIER] || '',
-    [AT.REFS_INCENTIVE]: koboSubmission[KOBODATA.INCENTIVE] || '',
+    [AT.REFS_INCENTIVE]: koboSubmission[KOBODATA.PHONE_INCENTIVE] || '',
   };
 
   // if there's a field in the submission that endswith "/uuid" then note that
@@ -148,7 +149,7 @@ app.post(PIPE_URL, (req, res) => {
   if (KOBO_DEBUG) {
     console.log('RECEIVED: ' + JSON.stringify(req.body));
   }
-
+  const subm = req.body;
   const {
     hostname,
     port,
@@ -157,30 +158,49 @@ app.post(PIPE_URL, (req, res) => {
     headers,
     uuid,
     data,
-  } = transformSubmission(req.body);
+  } = transformSubmission(subm);
 
   if (KOBO_DEBUG) {
     console.log('SENDING: ' + JSON.stringify(data));
     console.log(`TO: ${hostname}:${port}${path}#KEY ${headers.Authorization}`);
   }
 
-  const airtableReq = https.request({
-    hostname,
-    port,
-    path,
-    method,
-    headers,
-  }, (airtableRes) => {
-    console.log(`forwarding submission: ${uuid} ${new Date()} status=${airtableRes.statusCode}`)
-    const { statusCode } = airtableRes;
-    airtableRes.setEncoding('utf8');
-    airtableRes.on('data', (d, ...args) => {
-      if (KOBO_DEBUG) {
-        console.log(d, args);
-        console.log(JSON.stringify(parseResponse(d)));
-        console.log('received by airtable');
-      }
-      if (AUTO_REFRESH_AIRTABLE) {
+  if (data.records.length === 0) {
+    console.log(`No referrals have been found
+      Extracting: CARRIER,	PHONE_INCENTIVE, id_participant`);
+    let ID_PARTICIPANT = subm[KOBODATA.ID_PARTICIPANT];
+    let CARRIER = subm[KOBODATA.CARRIER];
+    let PHONE_INCENTIVE = subm[KOBODATA.PHONE_INCENTIVE];
+
+    if (ID_PARTICIPANT && CARRIER && PHONE_INCENTIVE) {
+      console.log(`a carrier is present so we will forward this to airtable`);
+      setCarrierById([
+        [ID_PARTICIPANT, CARRIER, PHONE_INCENTIVE],
+      ]).then(function () {
+        console.log('updated record with no referrals');
+      }).catch(logError);
+    }
+    return res.send(JSON.stringify({
+      status: 'OK',
+    }));
+  } else {
+    const airtableReq = https.request({
+      hostname,
+      port,
+      path,
+      method,
+      headers,
+    }, (airtableRes) => {
+      console.log(`forwarding submission: ${uuid} ${new Date()} status=${airtableRes.statusCode}`)
+      const { statusCode } = airtableRes;
+      airtableRes.setEncoding('utf8');
+      airtableRes.on('data', (d, ...args) => {
+        if (KOBO_DEBUG) {
+          console.log(d, args);
+          console.log(JSON.stringify(parseResponse(d)));
+          console.log('received by airtable');
+        }
+        if (AUTO_REFRESH_AIRTABLE) {
           console.log('Now updating referrals');
           callAirtableRefresher().then(({ message, finished }) => {
             console.log('Finished updating referrals');
@@ -190,20 +210,21 @@ app.post(PIPE_URL, (req, res) => {
               statusCode,
             }));
           }).catch(logError);
-      } else {
-        res.send(JSON.stringify({
-          statusCode,
-        }));
-      }
+        } else {
+          res.send(JSON.stringify({
+            statusCode,
+          }));
+        }
+      });
     });
-  });
 
-  airtableReq.on('error', (error) => {
-    console.error(error);
-  });
+    airtableReq.on('error', (error) => {
+      console.error(error);
+    });
 
-  airtableReq.write(JSON.stringify(data));
-  airtableReq.end();
+    airtableReq.write(JSON.stringify(data));
+    airtableReq.end();
+  }
 });
 
 // TEST pages and ABOUT page
