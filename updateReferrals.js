@@ -127,6 +127,10 @@ class Participant {
       });
     }
   }
+  setParentUuid () {
+    let val = this.fields[AT.UUID];
+    this._REFERRER._update.fields[AT.PARENT_UUID] = val;
+  }
   decideIfUpdatesNeeded () {
     const knownReferrals = this.stringifyList(this._AT_RECRUITS);
     const derivedReferrals = this.stringifyList(this._CALCULATED_REFERRALS);
@@ -191,6 +195,7 @@ const calculateUpdates = (_participants) => {
 
     participants.forEach((p) => p.setReferrer());
     participants.forEach((p) => p.setCarrierIfNeeded());
+    participants.forEach((p) => p.setParentUuid());
     participants.forEach((p) => p.decideIfUpdatesNeeded());
 
     let updateParams = [];

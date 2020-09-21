@@ -28,5 +28,6 @@ module.exports = {
     PHONE_FOR_INCENTIVE: 'PHONE_FOR_INCENTIVE',
     TIMESTAMP: 'Fecha envio invitacion',
     UUID: 'submission_uuid',
+    PARENT_UUID: 'Airtable COL submission_uuid',
   },
 }
