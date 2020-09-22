@@ -128,8 +128,10 @@ class Participant {
     }
   }
   setParentUuid () {
-    let val = this.fields[AT.UUID];
-    this._REFERRER._update.fields[AT.PARENT_UUID] = val;
+    if (this._REFERRER) {
+      let val = this.fields[AT.UUID];
+      this._REFERRER._update.fields[AT.PARENT_UUID] = val;
+    }
   }
   decideIfUpdatesNeeded () {
     const knownReferrals = this.stringifyList(this._AT_RECRUITS);
