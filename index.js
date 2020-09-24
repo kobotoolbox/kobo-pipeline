@@ -4,6 +4,7 @@ const https = require('https');
 const fs = require('fs');
 const { callAirtableRefresher } = require('./updateReferrals');
 const { setCarrierById } = require('./setCarrierById');
+const { updateParentUuid } = require('./updateParentUuid');
 
 const app = express();
 app.use(bodyParser.json());
@@ -150,6 +151,14 @@ app.post(PIPE_URL, (req, res) => {
     console.log('RECEIVED: ' + JSON.stringify(req.body));
   }
   const subm = req.body;
+
+  // add the submission UUID to the row in Airtable that already exists for
+  // this participant
+  updateParentUuid(
+    subm[KOBODATA.ID_PARTICIPANT],
+    subm[KOBODATA.UUID_PATH].replace('uuid:', '')
+  );
+
   const {
     hostname,
     port,
