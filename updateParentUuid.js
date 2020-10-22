@@ -72,7 +72,7 @@ function updateParentUuid(participantId, newUuid) {
           return;
         }
 
-        if (records[0][AT.PARENT_UUID]) {
+        if (records[0].fields[AT.PARENT_UUID]) {
           req.emit(
             'error',
             `Participant link used multiple times`
@@ -81,14 +81,14 @@ function updateParentUuid(participantId, newUuid) {
         }
 
         writeNewUuid(records[0].id, newUuid);
+        success();
       });
     });
     req.on('error', (e) => {
-      console.error('Failed to locate Airtable record for parent uuid update:', e)
+      console.error('Failed');
       fail(e);
     });
     req.end();
-    success();
   });
 }
 
