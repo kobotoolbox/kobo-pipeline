@@ -52,7 +52,8 @@ function writeNewUuid(airtableRecordId, newUuid) {
 
 function updateParentUuid(participantId, newUuid) {
   const queryUrl = new URL(airtableBaseUrl);
-  queryUrl.searchParams.set('fields[]', AT.ID_OF_PARTICIPANT);
+  queryUrl.searchParams.append('fields[]', `${AT.PARENT_UUID}`);
+  queryUrl.searchParams.append('fields[]', `${AT.ID_OF_PARTICIPANT}`);
   queryUrl.searchParams.set('filterByFormula', `{${AT.ID_OF_PARTICIPANT}} = ${participantId}`);
   const req = https.request(queryUrl, {method: 'GET', headers: airtableHeaders}, (res) => {
     res.on('data', (d) => {
@@ -69,6 +70,15 @@ function updateParentUuid(participantId, newUuid) {
         );
         return;
       }
+
+      if (records[0][AT.PARENT_UUID]) {
+        req.emit(
+          'error',
+          `Participant link used multiple times`
+        );
+        return;
+      }
+
       writeNewUuid(records[0].id, newUuid);
     });
   });
