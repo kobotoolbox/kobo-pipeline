@@ -51,41 +51,45 @@ function writeNewUuid(airtableRecordId, newUuid) {
 }
 
 function updateParentUuid(participantId, newUuid) {
-  const queryUrl = new URL(airtableBaseUrl);
-  queryUrl.searchParams.append('fields[]', `${AT.PARENT_UUID}`);
-  queryUrl.searchParams.append('fields[]', `${AT.ID_OF_PARTICIPANT}`);
-  queryUrl.searchParams.set('filterByFormula', `{${AT.ID_OF_PARTICIPANT}} = ${participantId}`);
-  const req = https.request(queryUrl, {method: 'GET', headers: airtableHeaders}, (res) => {
-    res.on('data', (d) => {
-      if (res.statusCode !== 200) {
-        req.emit('error', d.toString());
-        return;
-      }
-      const records = JSON.parse(d).records;
-      if (records.length !== 1) {
-        req.emit(  // is this really the right way?
-          'error',
-          `Expected to find a single Airtable record for participant ${participantId} ` +
-            `but found ${records.length} instead`
-        );
-        return;
-      }
+  return new Promise((success, fail)=>{
+    const queryUrl = new URL(airtableBaseUrl);
+    queryUrl.searchParams.append('fields[]', AT.PARENT_UUID);
+    queryUrl.searchParams.append('fields[]', AT.ID_OF_PARTICIPANT);
+    queryUrl.searchParams.set('filterByFormula', `{${AT.ID_OF_PARTICIPANT}} = ${participantId}`);
+    const req = https.request(queryUrl, {method: 'GET', headers: airtableHeaders}, (res) => {
+      res.on('data', (d) => {
+        if (res.statusCode !== 200) {
+          req.emit('error', d.toString());
+          return;
+        }
+        const records = JSON.parse(d).records;
+        if (records.length !== 1) {
+          req.emit(  // is this really the right way?
+            'error',
+            `Expected to find a single Airtable record for participant ${participantId} ` +
+              `but found ${records.length} instead`
+          );
+          return;
+        }
 
-      if (records[0][AT.PARENT_UUID]) {
-        req.emit(
-          'error',
-          `Participant link used multiple times`
-        );
-        return;
-      }
+        if (records[0][AT.PARENT_UUID]) {
+          req.emit(
+            'error',
+            `Participant link used multiple times`
+          );
+          return;
+        }
 
-      writeNewUuid(records[0].id, newUuid);
+        writeNewUuid(records[0].id, newUuid);
+      });
     });
+    req.on('error', (e) => {
+      console.error('Failed to locate Airtable record for parent uuid update:', e)
+      fail(e);
+    });
+    req.end();
+    success();
   });
-  req.on('error', (e) => {
-    console.error('Failed to locate Airtable record for parent uuid update:', e)
-  });
-  req.end();
 }
 
 module.exports = {
