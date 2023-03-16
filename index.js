@@ -157,8 +157,15 @@ app.post(PIPE_URL, (req, res) => {
   updateParentUuid(
     subm[KOBODATA.ID_PARTICIPANT],
     subm[KOBODATA.UUID_PATH].replace('uuid:', '')
-  );
+  ).then(() => {
+    forwardSubmissionToAirtable(subm, req, res);
+  }).catch((err) => {
+    console.error('Error in "updateParentUUID":');
+    console.error(err);
+  });
+});
 
+function forwardSubmissionToAirtable(subm, req, res) {
   const {
     hostname,
     port,
@@ -234,7 +241,7 @@ app.post(PIPE_URL, (req, res) => {
     airtableReq.write(JSON.stringify(data));
     airtableReq.end();
   }
-});
+}
 
 // TEST pages and ABOUT page
 
