@@ -28,11 +28,13 @@
     <script>
       const randStr = () => Math.random().toString(36).substring(2, 15);
       let vals = {
-        'id_ref': prompt('id_ref'),
+        'id_participant': prompt('id_participant*'),
         'meta/instanceID': randStr() + randStr(),
       };
+      vals['RECRUITMENT/CARRIER'] = prompt('carrier?') || `${vals.id_participant} carrier`;
+      vals['RECRUITMENT/PHONE_INCENTIVE'] = prompt('ref phone?') || `${vals.id_participant} phone num`;
       for (let n = 1; n <= 3; n++) {
-        let baseVar = 'recruitment/RECRUIT' + n;
+        let baseVar = 'RECRUITMENT/RECRUIT' + n;
         let phoneVar = baseVar + '_PHONE';
         let nameVar = baseVar + '_NAME';
         let phonePrompt = prompt(phoneVar);

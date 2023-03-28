@@ -1,8 +1,9 @@
-const { AT } = require('./constants');
+// const { AT } = require('./constants');
+const { table } = require('./airtableBase');
 
 const sendUpdatesToAirtable = (base, updates) => {
   return new Promise((success, fail) => {
-    base(AT.TABLE_NAME).update(updates, function (err, records) {
+    table.update(updates, function (err, records) {
       if (err) { console.error(err); return fail(err); }
       success(records);
     });

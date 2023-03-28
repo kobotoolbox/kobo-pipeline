@@ -17,6 +17,7 @@ function startInterval (statusEl, logEl, buttonEl, cb) {
       // statusEl.text(`Update in progress...`)
       if (message != 'OK') {
         let li = $('<li>');
+        let resp = JSON.stringify({ message, finished });
         $('<span>').text(new Date().toISOString() + ' : ').appendTo(li);
         $('<code>').text(resp).appendTo(li);
         li.prependTo(logEl);
