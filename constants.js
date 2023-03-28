@@ -1,33 +1,39 @@
+const AT_FIELDS = {};
+
+const pullAtFieldFromEnv = (fieldId) => {
+  const envVar = `AIRTABLE_FIELDS_${fieldId}`;
+  const val = process.env[envVar];
+  if (!val) {
+    throw new Error(`Variable not defined: ${envVar}`)
+  }
+  AT_FIELDS[fieldId] = val;
+}
+
+[
+  'ID_PARTICIPANT',
+  'RECRUITS_LIST',
+  'NAME',
+  'TODAY',
+  'RECRUITED_BY_ID',
+  'PHONE',
+  'CARRIER',
+  'REF_PHONE',
+  'REF_CARRIER',
+].forEach((f) => pullAtFieldFromEnv(f));
+
 module.exports = {
   // field names pulled from the kobo submission
   KOBODATA: {
     ID_PARTICIPANT: 'id_participant',
     TODAY: 'today',
-    CARRIER: 'CLOSING/CARRIER',
-    // INCENTIVE should just be called PHONE_INCENTIVE
-    INCENTIVE: 'CLOSING/PHONE_INCENTIVE',
-    PHONE_INCENTIVE: 'CLOSING/PHONE_INCENTIVE',
-    NAME_PATH: (n) => `RECRUITMENT/RECRUIT${n}_NAME`,
-    PHONE_PATH: (n) => `RECRUITMENT/RECRUIT${n}_PHONE`,
-    UUID_PATH: 'meta/instanceID',
+    CARRIER: 'RECRUITMENT/CARRIER',
+    PHONE_INCENTIVE: 'RECRUITMENT/PHONE_INCENTIVE',
   },
   // Fields used in the column headers of the AirTable (AT) document
-  AT: {
-    VIEW_NAME: process.env.AT_VIEW_NAME || 'All data',
-    TABLE_NAME: process.env.AT_TABLE_NAME || 'Respondent tracker',
-    ID_OF_PARTICIPANT: 'ID de participant',
-    NAME: 'Prénom',
-    RECRUITED_BY_ID: 'Recruté par',
-    PHONE_NUMBER_COL: 'Numéro de téléphone',
-    RECRUITS_COL: 'Recrues',
-    CARRIER: 'Airtable COL CARRIER',
-    INCENTIVE: 'Airtable COL TEL INCENTIVO',
-    REFS_CARRIER: 'Airtable COL REFS CARRIER',
-    REFS_INCENTIVE: 'Airtable COL REFS INCENTIVE',
-    SPECIFIED_CARRIER: 'SPECIFIED_CARRIER',
-    PHONE_FOR_INCENTIVE: 'PHONE_FOR_INCENTIVE',
-    TIMESTAMP: 'Date invitation',
-    UUID: 'submission_uuid',
-    PARENT_UUID: 'Airtable COL submission_uuid',
+  atfield: (vname) => {
+    if (!AT_FIELDS[vname]) {
+      throw new Error('missing field: ' + vname);
+    }
+    return AT_FIELDS[vname];
   },
 }
