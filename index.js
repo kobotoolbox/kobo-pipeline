@@ -28,17 +28,7 @@ if (KOBO_DEBUG) {
   console.log("DEBUG MODE TRUE. heroku config: KOBO_DEBUG != 'false'")
 }
 
-// assertEqual(AT.PHONE_NUMBER_COL, AT.fields.PHONE);
-// assertEqual(AT.NAME, AT.fields.NAME);
-// assertEqual(AT.fields.TODAY, 'TIMESTAMP');
-
-const xsub = (koboSubmission) => {
-  ['CARRIER', 'PHONE_INCENTIVE'].forEach((vv)=>{
-    if (koboSubmission[`CLOSING/${vv}`]) {
-      koboSubmission[`RECRUITMENT/${vv}`] = koboSubmission[`CLOSING/${vv}`]
-    }
-  });
-
+const transformSubmission = (koboSubmission) => {
   let timestampField = atfield('TODAY') || 'attoday';
   let postData = {
     [atfield('RECRUITED_BY_ID')]: koboSubmission[KOBODATA.ID_PARTICIPANT],
@@ -48,9 +38,8 @@ const xsub = (koboSubmission) => {
   };
   let records = [];
   for (let i=1; i<=3; i++) {
-    let phoneVar = `RECRUITMENT/RECRUIT${i}_PHONE`; // RECRUITMENT/RECRUIT1_PHONE
-    let nameVar = `RECRUITMENT/RECRUIT${i}_NAME`;  // RECRUITMENT/RECRUIT1_NAME
-    
+    let phoneVar = KOBODATA.INDEXED_PHONE.replace('#', i); // RECRUITMENT/RECRUIT1_PHONE
+    let nameVar = KOBODATA.INDEXED_NAME.replace('#', i);  // RECRUITMENT/RECRUIT1_NAME
     if (koboSubmission[phoneVar]) {
       records.push({
         ...postData,
@@ -69,7 +58,7 @@ app.post(PIPE_URL, async (req, res) => {
   if (KOBO_DEBUG) {
     console.log('RECEIVED: ' + JSON.stringify(req.body));
   }
-  const records = xsub(req.body).map((rec) => { return { fields: rec } });
+  const records = transformSubmission(req.body).map((rec) => { return { fields: rec } });
   let created;
   if (records.length > 0) {
     created = table.create(records);
@@ -120,7 +109,7 @@ app.post(AIRTABLE_REFRESH_URL, async (req, res) => {
 // TESTER available at /Pipeline/test
 // It's basically a way to send mock data to the "transformSubmission()" function
 app.post(TEST_URL, async (req, res) => {
-  return res.send(JSON.stringify(xsub(req.body)));
+  return res.send(JSON.stringify(transformSubmission(req.body)));
 });
 
 app.get(TEST_URL, async (req, res) => {
