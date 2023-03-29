@@ -1,14 +1,13 @@
 const Airtable = require('airtable');
+
 const {
-  AIRTABLE_KEY,
-  AIRTABLE_BASE_ID,
-  AT_TABLE_ID,
-  AT_VIEW_ID,
+  ATCONF_API_KEY,
+  ATCONF_BASE_ID,
+  ATCONF_TABLE_ID,
 } = process.env;
 
-const table = new Airtable({ apiKey: AIRTABLE_KEY }).base(AIRTABLE_BASE_ID).table(AT_TABLE_ID);
-
 module.exports = {
-  table,
-  viewId: AT_VIEW_ID,
+  table: new Airtable({
+    apiKey: ATCONF_API_KEY,
+  }).base(ATCONF_BASE_ID).table(ATCONF_TABLE_ID),
 };
