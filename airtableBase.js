@@ -6,6 +6,12 @@ const {
   ATCONF_TABLE_ID,
 } = process.env;
 
+console.log({
+  ATCONF_API_KEY,
+  ATCONF_BASE_ID,
+  ATCONF_TABLE_ID,
+});
+
 module.exports = {
   table: new Airtable({
     apiKey: ATCONF_API_KEY,
