@@ -64,8 +64,13 @@ app.post(PIPE_URL, async (req, res) => {
     created = table.create(records);
   }
   if (AUTO_REFRESH_AIRTABLE) {
-    const results = await callAirtableRefresher();
-    res.send(results);
+    try {
+      const results = await callAirtableRefresher();
+      res.send(results);
+    } catch (err) {
+      console.error('Error Refreshing Airtable:');
+      console.error(err);
+    }
   } else {
     const n = records.length
     res.send({
@@ -99,11 +104,16 @@ app.get(AIRTABLE_REFRESH_URL, async (req, res) => {
 });
 
 app.post(AIRTABLE_REFRESH_URL, async (req, res) => {
-  const { message, finished } = await callAirtableRefresher();
-  res.send(JSON.stringify({
-    message,
-    finished,
-  }));
+  try {
+    const { message, finished } = await callAirtableRefresher();
+    res.send(JSON.stringify({
+      message,
+      finished,
+    }));
+  } catch (err) {
+    console.error('Error Refreshing Airtable:');
+    console.error(err);
+  }
 });
 
 // TESTER available at /Pipeline/test
